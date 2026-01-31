@@ -1,6 +1,6 @@
 import { z } from "zod";
 enum Role {
-  User = "CUSTOMER",
+ CUSTOMER = "CUSTOMER",
   SELLER = "SELLER",
   ADMIN = "ADMIN",
 }
