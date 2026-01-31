@@ -126,7 +126,7 @@ const RegistrationFrom = () => {
           {...field}
           className="w-full border rounded px-3 py-2"
         >
-          <option value="USER">User</option>
+          <option value="CUSTOMER">Customer</option>
           <option value="SELLER">Seller</option>
           <option value="ADMIN">Admin</option>
         </select>
