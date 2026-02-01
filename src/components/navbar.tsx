@@ -1,186 +1,101 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Menu } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-
-import Image from "next/image";
+import { useUser } from "./provider/UserProvider";
 import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { ModeToggle } from "./ToggleMode";
+import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu";
 
-interface MenuItem {
-  title: string;
-  url: string;
-  description?: string;
-  icon?: React.ReactNode;
-  items?: MenuItem[];
-}
+interface MenuItem { title: string; url: string; }
 
-interface Navbar1Props {
+interface NavbarProps {
   className?: string;
-  logo?: {
-    url: string;
-    src: string;
-    alt: string;
-    title: string;
-    className?: string;
-  };
-  menu?: MenuItem[];
-  auth?: {
-    login: {
-      title: string;
-      url: string;
-    };
-    signup: {
-      title: string;
-      url: string;
-    };
-  };
+  logo?: { url: string; src: string; alt: string; title: string; };
 }
 
-const Navbar1 = ({
-  logo = {
-    url: "/",
-    src: "/Logo.png",
-    alt: "logo",
-    title: "MediShop",
-  },
-  menu = [
-    { title: "Home", url: "/" },
-    { title: "Shop", url: "/shop" },
-    { title: "Medicine Details", url: "/shop/:id" },
-  ],
-  auth = {
-    login: { title: "Login", url: "/login" },
-    signup: { title: "Sign up", url: "/register" },
-  },
-  className,
-}: Navbar1Props) => {
+export const Navbar1 = ({ logo = { url: "/", src: "/Logo.png", alt: "logo", title: "MediShop" }, className }: NavbarProps) => {
+  const { user, setUser, loading } = useUser();
 
-  // 🔐 AUTH STATE
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
-  // 🚪 LOGOUT
   const handleLogout = async () => {
-    await fetch("http://localhost:4000/api/logout", {
-      method: "POST",
-      credentials: "include",
-    });
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    setUser(null);
-    window.location.href = "/login";
+    try {
+      await fetch("http://localhost:4000/api/auth/sign-out", {
+        method: "POST",
+        credentials: "include",
+      });
+      setUser(null); // update UI immediately
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
   };
+
+  const defaultMenu: MenuItem[] = [{ title: "Home", url: "/" }, { title: "Shop", url: "/shop" }];
+  const authMenu: MenuItem[] = user
+    ? [...defaultMenu, { title: "Dashboard", url: "/dashboard" }, { title: "Profile", url: "/profile" }]
+    : defaultMenu;
+
+  if (loading) return <div className="flex justify-center py-10">Loading...</div>;
 
   return (
     <section className={cn("py-0.5 pl-5", className)}>
       <div className="container">
-
-        {/* ================= DESKTOP MENU ================= */}
         <nav className="hidden items-center justify-between lg:flex">
           <div className="flex items-center gap-6">
-            {/* Logo */}
             <Link href={logo.url} className="flex items-center gap-2">
               <Image src={logo.src} width={32} height={32} alt={logo.alt} />
               <span className="text-lg font-semibold">{logo.title}</span>
             </Link>
-
             <NavigationMenu>
               <NavigationMenuList>
-                {menu.map((item) => renderMenuItem(item))}
+                {authMenu.map((item) => (
+                  <NavigationMenuItem key={item.title}>
+                    <NavigationMenuLink href={item.url} className="px-4 py-2">{item.title}</NavigationMenuLink>
+                  </NavigationMenuItem>
+                ))}
               </NavigationMenuList>
             </NavigationMenu>
           </div>
 
-          {/* AUTH BUTTONS */}
           <div className="flex gap-2 items-center">
             <ModeToggle />
-
             {user ? (
-              <Button size="sm" variant="destructive" onClick={handleLogout}>
-                Logout
-              </Button>
+              <Button size="sm" variant="destructive" onClick={handleLogout}>Logout</Button>
             ) : (
               <>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={auth.login.url}>{auth.login.title}</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href={auth.signup.url}>{auth.signup.title}</Link>
-                </Button>
+                <Button asChild variant="outline" size="sm"><Link href="/login">Login</Link></Button>
+                <Button asChild size="sm"><Link href="/register">Sign up</Link></Button>
               </>
             )}
           </div>
         </nav>
 
-        {/* ================= MOBILE MENU ================= */}
+        {/* MOBILE MENU */}
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
-            <Link href={logo.url}>
-              <Image src={logo.src} width={32} height={32} alt={logo.alt} />
-            </Link>
-
+            <Link href={logo.url}><Image src={logo.src} width={32} height={32} alt={logo.alt} /></Link>
             <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
-
+              <SheetTrigger asChild><Button variant="outline" size="icon"><Menu className="size-4" /></Button></SheetTrigger>
               <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>{logo.title}</SheetTitle>
-                </SheetHeader>
-
+                <SheetHeader><SheetTitle>{logo.title}</SheetTitle></SheetHeader>
                 <Accordion type="single" collapsible className="mt-4">
-                  {menu.map((item) => renderMobileMenuItem(item))}
+                  {authMenu.map((item) => (
+                    <AccordionItem key={item.title} value={item.title}>
+                      <AccordionTrigger>{item.title}</AccordionTrigger>
+                      <AccordionContent><Link href={item.url}>{item.title}</Link></AccordionContent>
+                    </AccordionItem>
+                  ))}
                 </Accordion>
-
                 <div className="mt-6 flex flex-col gap-3">
                   {user ? (
-                    <Button variant="destructive" onClick={handleLogout}>
-                      Logout
-                    </Button>
+                    <Button variant="destructive" onClick={handleLogout}>Logout</Button>
                   ) : (
                     <>
-                      <Button asChild variant="outline">
-                        <Link href={auth.login.url}>{auth.login.title}</Link>
-                      </Button>
-                      <Button asChild>
-                        <Link href={auth.signup.url}>{auth.signup.title}</Link>
-                      </Button>
+                      <Button asChild variant="outline"><Link href="/login">Login</Link></Button>
+                      <Button asChild><Link href="/register">Sign up</Link></Button>
                     </>
                   )}
                 </div>
@@ -192,24 +107,3 @@ const Navbar1 = ({
     </section>
   );
 };
-
-/* ================= HELPERS ================= */
-
-const renderMenuItem = (item: MenuItem) => (
-  <NavigationMenuItem key={item.title}>
-    <NavigationMenuLink href={item.url} className="px-4 py-2">
-      {item.title}
-    </NavigationMenuLink>
-  </NavigationMenuItem>
-);
-
-const renderMobileMenuItem = (item: MenuItem) => (
-  <AccordionItem key={item.title} value={item.title}>
-    <AccordionTrigger>{item.title}</AccordionTrigger>
-    <AccordionContent>
-      <Link href={item.url}>{item.title}</Link>
-    </AccordionContent>
-  </AccordionItem>
-);
-
-export { Navbar1 };

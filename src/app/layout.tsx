@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar1 } from "@/components/navbar";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/provider/theme-provider";
+import { UserProvider } from "@/components/provider/UserProvider";
 
 
 const geistSans = Geist({
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          <UserProvider>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -46,6 +48,7 @@ export default function RootLayout({
             <Footer />
           </div>
         </ThemeProvider>
+        </UserProvider>
       </body>
     </html>
   );
