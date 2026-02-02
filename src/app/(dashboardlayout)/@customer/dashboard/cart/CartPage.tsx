@@ -20,11 +20,11 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch cart from backend
+  // Fetch cart
   const fetchCart = async () => {
     try {
       const res = await fetch("http://localhost:4000/api/cart", {
-        credentials: "include", // ✅ send cookies
+        credentials: "include",
       });
       const data = await res.json();
       if (data.success) {
@@ -32,8 +32,7 @@ export default function CartPage() {
       } else {
         toast.error(data.message || "Failed to load cart");
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Server error");
     } finally {
       setLoading(false);
@@ -44,15 +43,43 @@ export default function CartPage() {
     fetchCart();
   }, []);
 
-  // Remove item from cart
+  // Update quantity (+ / -)
+  const updateQuantity = async (medicineId: string, quantity: number) => {
+    if (quantity < 1) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/cart/update/${medicineId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ quantity }),
+        }
+      );
+
+      const data = await res.json();
+      if (data.success) {
+        setCartItems(data.cart.items);
+      } else {
+        toast.error(data.message || "Failed to update quantity");
+      }
+    } catch {
+      toast.error("Server error");
+    }
+  };
+
+  // Remove item
   const removeItem = async (medicineId: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/cart/remove`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ medicineId }),
-      });
+      const res = await fetch(
+        `http://localhost:4000/api/cart/remove/${medicineId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
       const data = await res.json();
       if (data.success) {
         setCartItems(data.cart.items);
@@ -60,13 +87,12 @@ export default function CartPage() {
       } else {
         toast.error(data.message || "Failed to remove item");
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Server error");
     }
   };
 
-  // Place order (Cash on Delivery)
+  // Place order
   const placeOrder = async () => {
     if (cartItems.length === 0) {
       toast.error("Cart is empty");
@@ -77,28 +103,27 @@ export default function CartPage() {
     if (!shippingAddress) return;
 
     try {
-      const res = await fetch("http://localhost:4000/api/order/create", {
+      const res = await fetch("http://localhost:4000/api/orders/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ shippingAddress }),
       });
+
       const data = await res.json();
       if (data.success) {
         toast.success("Order placed successfully!");
-        setCartItems([]); // clear cart after order
+        setCartItems([]);
       } else {
         toast.error(data.message || "Failed to place order");
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Server error");
     }
   };
 
-  // Calculate total price
   const totalPrice = cartItems.reduce(
-    (total, item) => total + item.medicine.price * item.quantity,
+    (sum, item) => sum + item.medicine.price * item.quantity,
     0
   );
 
@@ -118,7 +143,6 @@ export default function CartPage() {
             key={item.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
             className="flex items-center justify-between bg-white rounded-xl p-4 shadow"
           >
             <div className="flex items-center gap-4">
@@ -129,13 +153,38 @@ export default function CartPage() {
                 height={64}
                 className="rounded-lg object-contain"
               />
+
               <div>
                 <h3 className="font-semibold">{item.medicine.name}</h3>
                 <p className="text-gray-500">
-                  ${item.medicine.price} x {item.quantity}
+                  ${item.medicine.price.toFixed(2)}
                 </p>
+
+                {/* Quantity Control */}
+                <div className="flex items-center gap-3 mt-2">
+                  <button
+                    onClick={() =>
+                      updateQuantity(item.medicine.id, item.quantity - 1)
+                    }
+                    className="px-3 py-1 bg-gray-200 rounded font-bold"
+                  >
+                    −
+                  </button>
+
+                  <span className="font-semibold">{item.quantity}</span>
+
+                  <button
+                    onClick={() =>
+                      updateQuantity(item.medicine.id, item.quantity + 1)
+                    }
+                    className="px-3 py-1 bg-gray-200 rounded font-bold"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
+
             <button
               onClick={() => removeItem(item.medicine.id)}
               className="text-red-600 font-semibold hover:underline"
@@ -148,7 +197,9 @@ export default function CartPage() {
 
       {cartItems.length > 0 && (
         <div className="mt-6 flex justify-between items-center bg-gray-100 p-4 rounded-xl">
-          <p className="font-semibold text-lg">Total: ${totalPrice.toFixed(2)}</p>
+          <p className="font-semibold text-lg">
+            Total: ${totalPrice.toFixed(2)}
+          </p>
           <button
             onClick={placeOrder}
             className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition font-semibold"
