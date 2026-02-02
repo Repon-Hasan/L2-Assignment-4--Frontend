@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
+import ReviewForm from "@/components/modules/ReviewForm";
 
 interface OrderItem {
   id: string;
@@ -21,7 +22,7 @@ interface Order {
   totalAmount: number;
   shippingAddress: string;
   createdAt: string;
-  status:string,
+  status: string;
   items: OrderItem[];
 }
 
@@ -51,13 +52,6 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
-
-
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -75,13 +69,14 @@ export default function OrdersPage() {
       <h1 className="text-3xl font-bold mb-6">My Orders</h1>
 
       {orders.length === 0 && (
-        <p className="text-gray-500 text-center">You haven’t placed any orders yet.</p>
+        <p className="text-gray-500 text-center">
+          You haven’t placed any orders yet.
+        </p>
       )}
 
       <AnimatePresence>
         <div className="space-y-6">
           {orders.map((order) => (
-            
             <motion.div
               key={order.id}
               initial={{ opacity: 0, y: 30 }}
@@ -90,11 +85,12 @@ export default function OrdersPage() {
               transition={{ duration: 0.3 }}
               className="bg-white rounded-xl shadow p-6"
             >
-              {/* Order header */}
+              {/* Order Header */}
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <p className="font-semibold">
-                    Order ID: <span className="text-gray-500">{order.id}</span>
+                    Order ID:{" "}
+                    <span className="text-gray-500">{order.id}</span>
                   </p>
                   <p className="text-sm text-gray-500">
                     {new Date(order.createdAt).toLocaleString()}
@@ -105,50 +101,55 @@ export default function OrdersPage() {
                 </p>
               </div>
 
-              <p className="text-sm mb-4">
+              <p className="text-sm mb-2">
                 <span className="font-medium">Shipping:</span>{" "}
                 {order.shippingAddress}
               </p>
+
               <p className="text-sm mb-4">
                 <span className="font-medium">Status:</span>{" "}
-                {order.status}
+                <span className="font-semibold">{order.status}</span>
               </p>
-  
 
-              {/* Items */}
-              <div className="space-y-3">
+              {/* Order Items */}
+              <div className="space-y-4">
                 {order.items.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center gap-4 border rounded-lg p-3"
-                  >
-                    <Image
-                      src={item.medicine.image}
-                      alt={item.medicine.name}
-                      width={56}
-                      height={56}
-                      className="rounded object-contain"
-                    />
-                    <div className="flex-1">
-                      <p className="font-semibold">{item.medicine.name}</p>
-                      <p className="text-sm text-gray-500">
-                        ${item.price} × {item.quantity}
+                  <div key={item.id}>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex items-center gap-4 border rounded-lg p-3"
+                    >
+                      <Image
+                        src={item.medicine.image}
+                        alt={item.medicine.name}
+                        width={56}
+                        height={56}
+                        className="rounded object-contain"
+                      />
+
+                      <div className="flex-1">
+                        <p className="font-semibold">
+                          {item.medicine.name}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          ${item.price} × {item.quantity}
+                        </p>
+                      </div>
+
+                      <p className="font-semibold">
+                        ${(item.price * item.quantity).toFixed(2)}
                       </p>
-                    </div>
-                    <p className="font-semibold">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </p>
-                  </motion.div>
-                  
+                    </motion.div>
+
+                    {/* ✅ Review Section */}
+                    {order.status === "DELIVERED" && (
+                      <div className="mt-3 ml-16">
+                        <ReviewForm medicineId={item.medicine.id} />
+                      </div>
+                    )}
+                  </div>
                 ))}
-                 <div>
-        {
-          order.status === "DELIVERED"? <p>hi</p> : <p> hello</p>
-          
-        }
-      </div>
               </div>
             </motion.div>
           ))}
