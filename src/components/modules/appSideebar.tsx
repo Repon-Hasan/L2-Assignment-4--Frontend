@@ -56,8 +56,8 @@ const SELLER_NAV_ITEMS = [
     ],
   },
   { title: "Orders", url: "/dashboard/seller-orders", icon: Package },
-  { title: "Payments", url: "/dashboard/payments", icon: DollarSign },
-  { title: "Profile", url: "/dashboard/profile", icon: Settings },
+ 
+ 
 ];
 
 const ADMIN_NAV_ITEMS = [

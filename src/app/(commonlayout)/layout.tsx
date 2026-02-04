@@ -7,7 +7,7 @@ function commonLayout({
 }>) {
   return (
     <div>
-        <h1>I am layout common page</h1>
+      
       {children}
     </div>
   )

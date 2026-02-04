@@ -23,35 +23,62 @@ interface Order {
   shippingAddress: string;
   createdAt: string;
   status: string;
-  items: OrderItem[];
+  items?: OrderItem[];
 }
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const fetchOrders = async () => {
-    try {
-      const res = await fetch("http://localhost:4000/api/orders", {
-        credentials: "include",
-      });
-
-      if (!res.ok) throw new Error("Failed to fetch orders");
-
-      const data = await res.json();
-      setOrders(data.orders);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load orders");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // 🔹 Load logged-in user
   useEffect(() => {
-    fetchOrders();
+    const loadUser = async () => {
+      try {
+        const res = await fetch("http://localhost:4000/api/me", {
+          credentials: "include",
+        });
+
+        if (!res.ok) throw new Error("Not authenticated");
+
+        const data = await res.json();
+        setUserId(data.user.id); // ✅ STRING
+      } catch {
+        toast.error("Please login");
+        setLoading(false);
+      }
+    };
+
+    loadUser();
   }, []);
 
+  // 🔹 Fetch orders ONLY when userId is ready
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchOrders = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:4000/api/orders/user/${userId}`,
+          { credentials: "include" }
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch orders");
+
+        const data = await res.json();
+        setOrders(data.orders || []);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load orders");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [userId]);
+
+  // 🔹 Loader
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -85,7 +112,7 @@ export default function OrdersPage() {
               transition={{ duration: 0.3 }}
               className="bg-white rounded-xl shadow p-6"
             >
-              {/* Order Header */}
+              {/* Header */}
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <p className="font-semibold">
@@ -111,9 +138,9 @@ export default function OrdersPage() {
                 <span className="font-semibold">{order.status}</span>
               </p>
 
-              {/* Order Items */}
+              {/* Items */}
               <div className="space-y-4">
-                {order.items.map((item) => (
+                {(order.items ?? []).map((item) => (
                   <div key={item.id}>
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -142,7 +169,6 @@ export default function OrdersPage() {
                       </p>
                     </motion.div>
 
-                    {/* ✅ Review Section */}
                     {order.status === "DELIVERED" && (
                       <div className="mt-3 ml-16">
                         <ReviewForm medicineId={item.medicine.id} />
