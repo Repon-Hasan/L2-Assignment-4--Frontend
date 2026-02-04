@@ -67,11 +67,12 @@ const ADMIN_NAV_ITEMS = [
     title: "Product Management",
     icon: Bot,
     items: [
-      { title: "Add Product", url: "/dashboard/add-product", icon: Tag },
-      { title: "Update Product", url: "/dashboard/update-product", icon: File },
+   
+      { title: "All Medicines", url: "/dashboard/all-medicines", icon: File },
+   
     ],
   },
-  { title: "Orders", url: "/dashboard/orders", icon: Package },
+  { title: "All Orders", url: "/dashboard/all-orders", icon: Package },
   { title: "Profile", url: "/dashboard/profile", icon: Settings },
 ];
 
