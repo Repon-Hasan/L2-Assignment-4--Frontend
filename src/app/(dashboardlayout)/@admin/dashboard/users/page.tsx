@@ -42,7 +42,7 @@ export default function ManageUsersPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:4000/api/users/${user.id}/status`,
+        `http://localhost:4000/api/${user.id}/status`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

@@ -5,6 +5,7 @@ import { Navbar1 } from "@/components/navbar";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/provider/theme-provider";
 import { UserProvider } from "@/components/provider/UserProvider";
+import { Toaster } from "sonner";
 
 
 const geistSans = Geist({
@@ -31,6 +32,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <UserProvider>
+            <Toaster position="bottom-center" />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
