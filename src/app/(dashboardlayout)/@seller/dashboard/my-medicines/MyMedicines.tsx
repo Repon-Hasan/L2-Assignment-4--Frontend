@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import toast from "react-hot-toast";
+
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 interface Medicine {
   id: string;

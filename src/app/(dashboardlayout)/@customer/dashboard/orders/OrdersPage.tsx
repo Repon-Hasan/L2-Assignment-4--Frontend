@@ -170,7 +170,7 @@ export default function OrdersPage() {
                       </p>
                     </motion.div>
 
-                    {order.status === "DELIVERED" && (
+                    {order.status.toUpperCase() === "DELIVERED" && (
                       <div className="mt-3 ml-16">
                         <ReviewForm medicineId={item.medicine.id} />
                       </div>

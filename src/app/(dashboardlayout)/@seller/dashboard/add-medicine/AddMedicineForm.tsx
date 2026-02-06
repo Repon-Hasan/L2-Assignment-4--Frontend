@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
+
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface MedicineFormData {
   name: string;

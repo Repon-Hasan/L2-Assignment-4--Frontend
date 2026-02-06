@@ -3,12 +3,17 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { getCurrentUser } from "@/services";
+
+/* ================= TYPES ================= */
+
+type OrderStatus = "PENDING" | "SHIPPED" | "DELIVERED";
 
 interface ApiOrderItem {
   id: string;
   quantity: number;
   price: number;
-  status: string;
+  status: OrderStatus;
   medicine: {
     name: string;
   };
@@ -27,33 +32,61 @@ interface SellerOrder {
   orderId: string;
   buyerEmail: string;
   shippingAddress: string;
-  status: string;
+  status: OrderStatus;
   createdAt: string;
   items: {
     id: string;
     medicineName: string;
     quantity: number;
     price: number;
-    status: string;
+    status: OrderStatus;
   }[];
 }
 
+/* ================= COMPONENT ================= */
+
 export default function SellerOrdersPage() {
+  const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<SellerOrder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
+  /* ================= LOAD CURRENT USER ================= */
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const current = await getCurrentUser();
+        if (!current?.email) {
+          toast.error("Not authenticated");
+          return;
+        }
+        setUser(current);
+      } catch {
+        toast.error("Failed to load user");
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  /* ================= LOAD SELLER ORDERS ================= */
+
+  useEffect(() => {
+    if (!user?.email) return;
+
     const fetchOrders = async () => {
       try {
         const res = await fetch(
-          "http://localhost:4000/api/orders/seller/bbb@gmail.com",
+          `http://localhost:4000/api/orders/seller/${user.email}`,
           { credentials: "include" }
         );
 
         const data = await res.json();
         if (!data.success) throw new Error("Failed");
 
-        // 🔥 GROUP ORDER ITEMS BY ORDER ID
         const grouped: Record<string, SellerOrder> = {};
 
         (data.data as ApiOrderItem[]).forEach(item => {
@@ -64,7 +97,7 @@ export default function SellerOrdersPage() {
               orderId,
               buyerEmail: item.order.user.email,
               shippingAddress: item.order.shippingAddress,
-              status: item.order.status,
+              status: item.order.status as OrderStatus,
               createdAt: item.order.createdAt,
               items: [],
             };
@@ -75,7 +108,7 @@ export default function SellerOrdersPage() {
             medicineName: item.medicine.name,
             quantity: item.quantity,
             price: item.price,
-            status: item.status,
+            status: item.status as OrderStatus,
           });
         });
 
@@ -83,15 +116,64 @@ export default function SellerOrdersPage() {
       } catch {
         toast.error("Failed to load seller orders");
       } finally {
-        setLoading(false);
+        setLoadingOrders(false);
       }
     };
 
     fetchOrders();
-  }, []);
+  }, [user?.email]);
 
-  
-  if (loading) {
+  /* ================= UPDATE ORDER ITEM STATUS ================= */
+
+  const updateItemStatus = async (
+    orderItemId: string,
+    status: OrderStatus
+  ) => {
+    try {
+      const res = await fetch(
+        `http://localhost:4000/shop/order-item/${orderItemId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ status }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!data.success) throw new Error("Update failed");
+
+      const newOrderStatus: OrderStatus = data.data.orderStatus;
+
+      toast.success("Order status updated");
+
+      // 🔥 Update UI: both item and order status
+      setOrders(prev =>
+        prev.map(order => {
+          const hasItem = order.items.some(i => i.id === orderItemId);
+          if (!hasItem) return order;
+
+          return {
+            ...order,
+            status: newOrderStatus,
+            items: order.items.map(item =>
+              item.id === orderItemId
+                ? { ...item, status }
+                : item
+            ),
+          };
+        })
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update status");
+    }
+  };
+
+  /* ================= LOADING UI ================= */
+
+  if (loadingUser || loadingOrders) {
     return (
       <div className="flex justify-center py-24">
         <motion.div
@@ -102,6 +184,8 @@ export default function SellerOrdersPage() {
       </div>
     );
   }
+
+  /* ================= UI ================= */
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -146,7 +230,13 @@ export default function SellerOrdersPage() {
                   </p>
                 </div>
 
-                <span className="px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-700">
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  order.status === "DELIVERED"
+                    ? "bg-green-100 text-green-700"
+                    : order.status === "SHIPPED"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}>
                   {order.status}
                 </span>
               </div>
@@ -161,8 +251,6 @@ export default function SellerOrdersPage() {
                 {order.items.map(item => (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
                     className="flex justify-between items-center border rounded-lg p-4"
                   >
                     <div>
@@ -174,14 +262,18 @@ export default function SellerOrdersPage() {
                       </p>
                     </div>
 
-                    <div className="text-right">
-                      <p className="font-semibold">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {item.status}
-                      </p>
-                    </div>
+                    {/* ✅ STATUS CHANGE */}
+                    <select
+                      value={item.status}
+                      onChange={e =>
+                        updateItemStatus(item.id, e.target.value as OrderStatus)
+                      }
+                      className="border rounded px-3 py-1 text-sm"
+                    >
+                      <option value="PENDING">PENDING</option>
+                      <option value="SHIPPED">SHIPPED</option>
+                      <option value="DELIVERED">DELIVERED</option>
+                    </select>
                   </motion.div>
                 ))}
               </div>
