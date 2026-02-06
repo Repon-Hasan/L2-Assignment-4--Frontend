@@ -1,4 +1,6 @@
 import React from 'react'
+import { Toaster } from 'sonner';
+
 
 function commonLayout({
   children,
@@ -7,8 +9,9 @@ function commonLayout({
 }>) {
   return (
     <div>
-      
+      <Toaster position="bottom-center" />
       {children}
+
     </div>
   )
 }

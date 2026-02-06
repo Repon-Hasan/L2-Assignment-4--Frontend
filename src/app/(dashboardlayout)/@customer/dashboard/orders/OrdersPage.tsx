@@ -119,6 +119,7 @@ export default function OrdersPage() {
                     Order ID:{" "}
                     <span className="text-gray-500">{order.id}</span>
                   </p>
+                  
                   <p className="text-sm text-gray-500">
                     {new Date(order.createdAt).toLocaleString()}
                   </p>

@@ -69,6 +69,7 @@ const ADMIN_NAV_ITEMS = [
     items: [
    
       { title: "All Medicines", url: "/dashboard/all-medicines", icon: File },
+      { title: "Manage Medicines", url: "/dashboard/manage-medicines", icon: File },
    
     ],
   },

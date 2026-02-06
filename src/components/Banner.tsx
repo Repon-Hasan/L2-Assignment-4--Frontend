@@ -39,7 +39,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-[85vh] overflow-hidden">
+    <section className="relative w-screen h-screen overflow-hidden justify-center mr-10">
       <AnimatePresence mode="wait">
         <motion.div
           key={slides[index].id}
@@ -54,11 +54,12 @@ export default function Hero() {
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url(${slides[index].image})` }}
           />
+
           {/* Overlay */}
           <div className="absolute inset-0 bg-black/50" />
 
           {/* Content */}
-          <div className="relative z-10 flex items-center justify-center min-h-[85vh] text-white px-4">
+          <div className="relative z-10 flex items-center justify-center h-full text-white">
             <motion.div
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}

@@ -52,6 +52,7 @@ export const registerUser=async(userData:FieldValues)=>{
          headers:{
               "Content-Type":"application/json"
          },
+         credentials: "include", // 🔥 REQUIRED
          body:JSON.stringify(userData)
     })
        const result=await res.json()

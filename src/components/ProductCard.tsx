@@ -3,29 +3,60 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { toast } from "react-hot-toast";
+import Swal from "sweetalert2";
 
 export default function MedicineCard({ product }: { product: any }) {
   const addToCart = async () => {
-    console.log("click")
+    const result = await Swal.fire({
+      title: "Confirm Purchase",
+      html: `
+        <div style="text-align:left">
+          <p><b>Medicine:</b> ${product.name}</p>
+          <p><b>Price:</b> $${product.price}</p>
+          <p><b>Stock:</b> ${product.stock}</p>
+        </div>
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Buy Now",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#2563eb", // blue-600
+      cancelButtonColor: "#6b7280", // gray
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       const res = await fetch("http://localhost:4000/api/cart/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // ✅ send cookies for auth
+        credentials: "include",
         body: JSON.stringify({ medicineId: product.id }),
       });
 
       const data = await res.json();
 
       if (data.success) {
-        toast.success("Added to cart!");
+        Swal.fire({
+          icon: "success",
+          title: "Added to Cart 🛒",
+          text: "Medicine added successfully",
+          timer: 1500,
+          showConfirmButton: false,
+        });
       } else {
-        toast.error(data.message || "Failed to add to cart");
+        Swal.fire({
+          icon: "error",
+          title: "Failed",
+          text: data.message || "Failed to add to cart",
+        });
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Server error");
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Please try again later",
+      });
     }
   };
 
@@ -38,7 +69,6 @@ export default function MedicineCard({ product }: { product: any }) {
       viewport={{ once: true }}
       className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-center"
     >
-      {/* Medicine Image */}
       <Image
         width={144}
         height={144}
@@ -47,7 +77,6 @@ export default function MedicineCard({ product }: { product: any }) {
         className="object-contain mb-4 rounded-lg"
       />
 
-      {/* Medicine Info */}
       <h3 className="text-xl font-bold text-center">{product.name}</h3>
       <p className="text-gray-500 text-sm text-center mt-1">
         {product.description}
@@ -55,7 +84,6 @@ export default function MedicineCard({ product }: { product: any }) {
       <p className="text-blue-600 font-bold mt-2">${product.price}</p>
       <p className="text-gray-400 text-sm mb-4">Stock: {product.stock}</p>
 
-      {/* Buttons */}
       <div className="flex gap-3 w-full mt-auto">
         <button
           onClick={addToCart}

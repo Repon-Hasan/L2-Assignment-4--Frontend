@@ -36,11 +36,23 @@ const LoginForm = () => {
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     try {
       const res = await loginUser(data);
-
+           console.log("res",res)
       if (res?.token) {
         toast.success("Logged in");
         localStorage.setItem("authToken", res.token);
+        
+     // ❌ banned user
+      if (res.user.status === "BANNED") {
+        toast.error("Your account has been banned. Please contact support.");
+        return;
+      }
 
+
+      // ✅ active user
+      if (res.user.status === "ACTIVE") {
+        toast.success("Logged in successfully 🎉");
+        localStorage.setItem("authToken", res.token);
+      }
         // ✅ Update UserProvider immediately after login
         await refreshUser();
 

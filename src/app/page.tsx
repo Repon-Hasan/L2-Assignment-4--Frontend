@@ -7,7 +7,7 @@ import Testimonials from "@/components/Testimonial";
 
 export default function Home() {
   return (
-   <div className="mx-28">\
+   <div className="mx-0">
            <Hero></Hero>
           <Features />
       <Listings />
