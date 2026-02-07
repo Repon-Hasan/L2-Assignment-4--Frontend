@@ -1,4 +1,4 @@
-"use client"; // ✅ Important: prevents prerendering error
+"use client"; // ✅ Must be client component
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,14 +16,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { loginSchema } from "./loginSchema";
-import { loginUser, getCurrentUser } from "@/services";
+import { loginUser } from "@/services";
 import { useUser } from "@/components/provider/UserProvider";
 
 const LoginForm = () => {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirectPath");
   const router = useRouter();
-  const { setUser, refreshUser } = useUser(); // ✅ Get UserProvider functions
+  const { refreshUser } = useUser();
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -36,25 +36,17 @@ const LoginForm = () => {
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     try {
       const res = await loginUser(data);
-      console.log("res", res);
 
       if (res?.token) {
-        toast.success("Logged in");
         localStorage.setItem("authToken", res.token);
 
-        // ❌ banned user
         if (res.user.status === "BANNED") {
           toast.error("Your account has been banned. Please contact support.");
           return;
         }
 
-        // ✅ active user
-        if (res.user.status === "ACTIVE") {
-          toast.success("Logged in successfully 🎉");
-          localStorage.setItem("authToken", res.token);
-        }
+        toast.success("Logged in successfully 🎉");
 
-        // ✅ Update UserProvider immediately after login
         await refreshUser();
 
         router.push(redirect || "/");
@@ -68,7 +60,7 @@ const LoginForm = () => {
 
   const demoCredentials = {
     admin: { email: "admin@gmail.com", password: "admin123" },
-    landlord: { email: "user@gmail.com", password: "admin123" },
+    user: { email: "user@gmail.com", password: "admin123" },
   };
 
   return (
@@ -76,9 +68,7 @@ const LoginForm = () => {
       <div className="flex items-center mb-3 gap-2">
         <div>
           <h1 className="text-lg font-semibold">Login</h1>
-          <small className="text-gray-600">
-            Join us today and start your journey
-          </small>
+          <small className="text-gray-600">Join us today and start your journey</small>
         </div>
       </div>
 
@@ -86,7 +76,6 @@ const LoginForm = () => {
         <Button
           variant="default"
           size="sm"
-          className="cursor-pointer"
           onClick={() => {
             form.setValue("email", demoCredentials.admin.email);
             form.setValue("password", demoCredentials.admin.password);
@@ -97,10 +86,9 @@ const LoginForm = () => {
         <Button
           variant="default"
           size="sm"
-          className="cursor-pointer"
           onClick={() => {
-            form.setValue("email", demoCredentials.landlord.email);
-            form.setValue("password", demoCredentials.landlord.password);
+            form.setValue("email", demoCredentials.user.email);
+            form.setValue("password", demoCredentials.user.password);
           }}
         >
           Demo User
@@ -116,16 +104,13 @@ const LoginForm = () => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Enter your email"
-                    {...field}
-                    value={field.value || ""}
-                  />
+                  <Input {...field} value={field.value || ""} placeholder="Enter your email" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="password"
@@ -133,36 +118,26 @@ const LoginForm = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Enter password"
-                    {...field}
-                    value={field.value || ""}
-                  />
+                  <Input {...field} type="password" placeholder="Enter password" value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button className="w-full mb-3 cursor-pointer" type="submit">
+          <Button className="w-full" type="submit">
             {isSubmitting ? "Logging..." : "Login"}
           </Button>
 
-          <div className="flex items-center justify-center">
+          <div className="flex justify-center">
             <small className="text-gray-600">
-              Don&apos;t have any account?{" "}
-              <Link href={"/register"} className="text-primary">
-                Register
-              </Link>
+              Don&apos;t have an account? <Link href="/register" className="text-primary">Register</Link>
             </small>
           </div>
 
-          <div className="flex items-center justify-center">
-            <Link href={"/"}>
-              <Button variant="default" className="w-full cursor-pointer">
-                Back To Home
-              </Button>
+          <div className="flex justify-center mt-2">
+            <Link href="/">
+              <Button variant="default" className="w-full">Back To Home</Button>
             </Link>
           </div>
         </form>

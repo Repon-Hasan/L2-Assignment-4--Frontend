@@ -1,14 +1,12 @@
-"use client";
+"use client"; // ✅ Important: prevents prerendering error
 
-import LoginForm from '@/components/LoginForm'
-import React from 'react'
+import React from "react";
+import LoginForm from "@/components/LoginForm";
 
-function page() {
+export default function LoginPage() {
   return (
     <div className="h-[80vh] flex justify-center items-center">
       <LoginForm />
     </div>
-  )
+  );
 }
-
-export default page
