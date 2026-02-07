@@ -1,4 +1,4 @@
-"use client";
+"use client"; // ✅ Important: prevents prerendering error
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,23 +36,24 @@ const LoginForm = () => {
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     try {
       const res = await loginUser(data);
-           console.log("res",res)
+      console.log("res", res);
+
       if (res?.token) {
         toast.success("Logged in");
         localStorage.setItem("authToken", res.token);
-        
-     // ❌ banned user
-      if (res.user.status === "BANNED") {
-        toast.error("Your account has been banned. Please contact support.");
-        return;
-      }
 
+        // ❌ banned user
+        if (res.user.status === "BANNED") {
+          toast.error("Your account has been banned. Please contact support.");
+          return;
+        }
 
-      // ✅ active user
-      if (res.user.status === "ACTIVE") {
-        toast.success("Logged in successfully 🎉");
-        localStorage.setItem("authToken", res.token);
-      }
+        // ✅ active user
+        if (res.user.status === "ACTIVE") {
+          toast.success("Logged in successfully 🎉");
+          localStorage.setItem("authToken", res.token);
+        }
+
         // ✅ Update UserProvider immediately after login
         await refreshUser();
 
@@ -115,7 +116,11 @@ const LoginForm = () => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your email" {...field} value={field.value || ""} />
+                  <Input
+                    placeholder="Enter your email"
+                    {...field}
+                    value={field.value || ""}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -128,7 +133,12 @@ const LoginForm = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="Enter password" {...field} value={field.value || ""} />
+                  <Input
+                    type="password"
+                    placeholder="Enter password"
+                    {...field}
+                    value={field.value || ""}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -141,13 +151,18 @@ const LoginForm = () => {
 
           <div className="flex items-center justify-center">
             <small className="text-gray-600">
-              Don&apos;t have any account? <Link href={"/register"} className="text-primary">Register</Link>
+              Don&apos;t have any account?{" "}
+              <Link href={"/register"} className="text-primary">
+                Register
+              </Link>
             </small>
           </div>
 
           <div className="flex items-center justify-center">
             <Link href={"/"}>
-              <Button variant="default" className="w-full cursor-pointer">Back To Home</Button>
+              <Button variant="default" className="w-full cursor-pointer">
+                Back To Home
+              </Button>
             </Link>
           </div>
         </form>
