@@ -1,4 +1,4 @@
-"use client"; // ✅ Must be client component
+"use client"; // ✅ MUST be first line
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,9 +29,7 @@ const LoginForm = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const {
-    formState: { isSubmitting },
-  } = form;
+  const { formState: { isSubmitting } } = form;
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     try {
