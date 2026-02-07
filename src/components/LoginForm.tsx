@@ -1,4 +1,4 @@
-"use client"; // ✅ MUST be first line
+"use client"; // ✅ Must be first line
 
 import { Button } from "@/components/ui/button";
 import {
