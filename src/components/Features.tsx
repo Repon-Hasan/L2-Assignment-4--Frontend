@@ -9,6 +9,8 @@ import {
   BadgeCheck,
   Lock,
 } from "lucide-react";
+import { Variants } from "framer-motion";
+
 
 const features = [
   {
@@ -46,7 +48,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants:Variants = {
   hidden: { opacity: 0, y: 40 },
   show: {
     opacity: 1,
