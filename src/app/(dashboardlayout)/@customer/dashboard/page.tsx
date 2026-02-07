@@ -14,6 +14,7 @@ interface Order {
 
 export default function CustomerDashboardHome() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
  useEffect(() => {
   const fetchOrders = async () => {
@@ -40,6 +41,9 @@ export default function CustomerDashboardHome() {
   fetchOrders();
 }, []);
 
+if(loading){
+  return <div>Loading...</div>;
+}
   const totalOrders = orders.length;
   const pendingOrders = orders.filter(o => o.status !== "DELIVERED").length;
   const deliveredOrders = orders.filter(o => o.status === "DELIVERED").length;
