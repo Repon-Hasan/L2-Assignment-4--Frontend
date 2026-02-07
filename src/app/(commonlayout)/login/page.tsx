@@ -1,12 +1,12 @@
-"use client"; // ✅ Must be first line
+"use client";
 
-import React from "react";
+import { Suspense } from "react";
 import LoginForm from "@/components/LoginForm";
-
-export default function Page() { // must be "Page"
+export const dynamic = "force-dynamic";
+export default function Page() {
   return (
-    <div className="h-[80vh] flex justify-center items-center">
+    <Suspense fallback={null}>
       <LoginForm />
-    </div>
+    </Suspense>
   );
 }
