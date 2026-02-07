@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Star, BadgeCheck } from "lucide-react";
+import type { Variants, AnimationGeneratorType } from "framer-motion";
 
 const reviews = [
   {
@@ -48,12 +49,12 @@ const containerVariants = {
   show: { transition: { staggerChildren: 0.2 } },
 };
 
-const cardVariants = {
+const cardVariants:Variants= {
   hidden: { opacity: 0, y: 40 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { type: "spring", stiffness: 120 },
+    transition: { type: "spring" as AnimationGeneratorType, stiffness: 120 },
   },
 };
 
