@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Swal from "sweetalert2";
 import { format } from "date-fns";
+import Link from "next/link";
 
 interface Medicine {
   id: string;
