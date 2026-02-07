@@ -17,10 +17,11 @@ import {
 import { getCurrentUser } from "@/services";
 
 interface DashboardLayoutProps {
-  admin: React.ReactNode;
-  seller: React.ReactNode;
-  user: React.ReactNode;
-  customer?: React.ReactNode;
+  children?: React.ReactNode;      // ✅ REQUIRED by Next.js
+  admin?: React.ReactNode;         // ✅ made optional
+  seller?: React.ReactNode;        // ✅ made optional
+  user?: React.ReactNode;          // ✅ made optional
+  customer?: React.ReactNode;      // ✅ already optional
 }
 
 export default function DashboardLayout({
@@ -31,17 +32,16 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const [role, setRole] = useState<"ADMIN" | "SELLER" | "CUSTOMER" | null>(null);
 
-    
   useEffect(() => {
     const fetchUser = async () => {
       const current = await getCurrentUser();
+
       if (current?.role) {
-        // Ensure uppercase from DB
         const userRole = current.role.toUpperCase();
         setRole(userRole as "ADMIN" | "SELLER" | "CUSTOMER");
         console.log("User role from DB:", userRole);
       } else {
-        setRole("CUSTOMER"); // default if not logged in
+        setRole("CUSTOMER");
         console.log("No user logged in, defaulting to CUSTOMER");
       }
     };
@@ -49,7 +49,6 @@ export default function DashboardLayout({
     fetchUser();
   }, []);
 
-  // Show loading until role is fetched
   if (!role) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] text-gray-500">
